@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>سایت بلیط فروشی</title>
+    <style>
+        .seat {
+            width: 30px;
+            height: 30px;
+            background-color: green;
+            margin: 5px;
+            display: inline-block;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+        }
+        .locked {
+            background-color: blue;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+        (function(){
+            emailjs.init("QyZ8lHDVGUwlndKIr"); // جایگزین کردن YOUR_USER_ID با User ID خود از EmailJS
+        })();
+    </script>
+</head>
+<body>
+    <div id="seating-plan">
+        <!-- صندلی‌ها را اینجا اضافه کنید -->
+        <!-- ایجاد 700 صندلی -->
+        <script>
+            for (let i = 1; i <= 700; i++) {
+                document.write('<div class="seat" data-seat="' + i + '">' + i + '</div>');
+            }
+        </script>
+    </div>
+
+    <div id="login-section" class="hidden">
+        <h2>ورود</h2>
+        <input type="text" id="entry-code" placeholder="کد ورود">
+        <button onclick="login()">ورود</button>
+    </div>
+
+    <div id="form-section" class="hidden">
+        <h2>فرم اطلاعات</h2>
+        <p>صندلی انتخاب شده: <span id="selected-seat"></span></p>
+        <input type="text" id="phone-number" placeholder="شماره تماس">
+        <button onclick="submitForm()">ارسال</button>
+    </div>
+
+    <script>
+        let selectedSeat = null;
+        let entryCode = null;
+
+        // بارگذاری وضعیت صندلی‌ها از LocalStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const seats = document.querySelectorAll('.seat');
+            seats.forEach(seat => {
+                const seatStatus = localStorage.getItem('seat-' + seat.dataset.seat);
+                if (seatStatus === 'locked') {
+                    seat.classList.add('locked');
+                }
+            });
+        });
+
+        document.querySelectorAll('.seat').forEach(seat => {
+            seat.addEventListener('click', function() {
+                if (!this.classList.contains('locked')) {
+                    this.classList.add('locked');
+                    selectedSeat = this.dataset.seat;
+                    entryCode = Math.random().toString(36).substr(2, 8);
+                    alert('کد ورود شما: ' + entryCode);
+                    alert('مبلغ بلیط: 100000 تومان\nشماره کارت: 1234-5678-9012-3456');
+                    document.getElementById('login-section').classList.remove('hidden');
+                    // ذخیره وضعیت صندلی در LocalStorage
+                    localStorage.setItem('seat-' + selectedSeat, 'locked');
+                    // قفل کردن صندلی برای ۳ ساعت
+                    setTimeout(() => {
+                        this.classList.remove('locked');
+                        localStorage.removeItem('seat-' + selectedSeat);
+                    }, 3 * 60 * 60 * 1000);
+                }
+            });
+        });
+
+        function login() {
+            const enteredCode = document.getElementById('entry-code').value;
+            if (enteredCode === entryCode) {
+                document.getElementById('selected-seat').innerText = selectedSeat;
+                document.getElementById('form-section').classList.remove('hidden');
+            } else {
+                alert('کد ورود نادرست است');
+            }
+        }
+
+        function submitForm() {
+            const phoneNumber = document.getElementById('phone-number').value;
+            if (phoneNumber) {
+                emailjs.send('service_6xu26ce', 'template_sj64mx7', {
+                    phone_number: phoneNumber,
+                    selected_seat: selectedSeat,
+                    to_email: 'm.sobhan.kazemkhani@gmail.com'
+                }).then(function(response) {
+                    alert('اطلاعات با موفقیت ارسال شد');
+                }, function(error) {
+                    alert('خطا در ارسال اطلاعات: ' + JSON.stringify(error));
+                });
+            } else {
+                alert('لطفا تمامی فیلدها را پر کنید');
+            }
+        }
+    </script>
+</body>
+</html>
